@@ -3,7 +3,7 @@
 # Javid_S2P_codes
 Here you will find codes related to datastructure transformation of suite2p to Yaksi lab structure 
 
-[[_TOC_]]
+{:toc}
 
 
 ## dependencies 
