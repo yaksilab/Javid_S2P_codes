@@ -11,8 +11,8 @@ Table of contents
    * [Data containtment](#Data-containtment)
    * [Dependency](#dependency)
    * [How to use](#How-to-use)
-     * [1. Clone](#1. clone the repo)
-     * [2. Copy the code](#2. Copythe code)
+     * [1. Clone](#clone)
+     * [2. Copy the code](#copy)
 <!--te-->
 
 
@@ -40,7 +40,7 @@ more data will be added soon.
 
 ## How to use 
 
-### 1. Clone the repo
+### 1. Clone the repo <a id='clone'></a>
 clone the repository local in your computer
 
 >- <code> git clone https://github.com/yaksilab/Javid_S2P_codes/tree/main/DataST </code>
@@ -68,7 +68,7 @@ To save as mat file
 
 >- <code> results_obj.save_as_npy() </code> This saves your transformed results to the same directory you have given for creatting the obj
 
-### 2. Copy the code
+### 2. Copy the code<a id='copy'></a>
 Just copy the code and save it the same path as your working path with name DataStructureTransform
 fowllow then the same procedure as Clone Repo
 
