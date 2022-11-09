@@ -52,8 +52,10 @@ import the the module DataStructureTransform
 create a transform object using <code>Transform_results</code> object, do this by giving the object initilizer the nessecery parameters
 1. first parameter is directory path, where your suite2p data is located
 2. second parameter is factor_meter, this how big a pixel_size is
-3. third parameter is total_z_distance, 
-eksemple:
+3. third parameter is total_z_distance
+ 
+Eksemple:
+
 >- <code> results_obj = Transform_results(directory, 0.3, 80) </code>
 
 To retieve the transformed results
