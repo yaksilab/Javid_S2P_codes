@@ -3,8 +3,17 @@
 # Javid_S2P_codes
 Here you will find codes related to datastructure transformation of suite2p to Yaksi lab structure 
 
-* TOC
-{:toc}
+Table of contents
+=================
+<!--ts-->
+   * [Dependencies](#Dependencies)
+   * [Supports](#Supports)
+   * [Data containtment](#Data-containtment)
+   * [Dependency](#dependency)
+   * [How to use](#How-to-use)
+     * [1. Clone](#1.-clone-the-repo)
+     * [2. Copy the code](#2.-Copy-the-code)
+<!--te-->
 
 
 ## dependencies 
