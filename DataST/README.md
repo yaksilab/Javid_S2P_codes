@@ -28,11 +28,11 @@ more data will be added soon.
 ### 1. Clone the repo
 clone the repository local in your computer
 
-<code> git clone https://github.com/yaksilab/Javid_S2P_codes/tree/main/DataST </code>
+>- <code> git clone https://github.com/yaksilab/Javid_S2P_codes/tree/main/DataST </code>
 
-import the the module DataStructureTransform
+>- import the the module DataStructureTransform
 
-<code> import DataStructureTransform* </code>
+>- <code> import DataStructureTransform* </code>
 
 create a transform object using <code>Transform_results</code> object, do this by giving the object initilizer the nessecery parameters
 1. first parameter is directory path, where your suite2p data is located
