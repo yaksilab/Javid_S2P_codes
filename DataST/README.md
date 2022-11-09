@@ -1,5 +1,9 @@
+
+
 # Javid_S2P_codes
 Here you will find codes related to datastructure transformation of suite2p to Yaksi lab structure 
+
+[[_TOC_]]
 
 ## dependencies 
 - numpy 
@@ -30,7 +34,7 @@ clone the repository local in your computer
 
 >- <code> git clone https://github.com/yaksilab/Javid_S2P_codes/tree/main/DataST </code>
 
->- import the the module DataStructureTransform
+import the the module DataStructureTransform
 
 >- <code> import DataStructureTransform* </code>
 
@@ -38,20 +42,20 @@ create a transform object using <code>Transform_results</code> object, do this b
 1. first parameter is directory path, where your suite2p data is located
 2. second parameter is factor_meter, this how big a pixel_size is
 3. third parameter is total_z_distance, 
-eksemple
-<code> results_obj = Transform_results(directory, 0.3, 80) </code>
+eksemple:
+>- <code> results_obj = Transform_results(directory, 0.3, 80) </code>
 
 To retieve the transformed results
 
-<code> results = results_obj.get_results() </code>
+>- <code> results = results_obj.get_results() </code>
 
 To save as npy file
 
-<code> results_obj.save_as_npy() </code> This saves your transformed results to the same directory you have given for creatting the obj
+>- <code> results_obj.save_as_npy() </code> This saves your transformed results to the same directory you have given for creatting the obj
 
 To save as mat file 
 
-<code> results_obj.save_as_npy() </code> This saves your transformed results to the same directory you have given for creatting the obj
+>- <code> results_obj.save_as_npy() </code> This saves your transformed results to the same directory you have given for creatting the obj
 
 ### 2. Copy the code
 Just copy the code and save it the same path as your working path with name DataStructureTransform
