@@ -5,6 +5,10 @@ Created on Wed Nov  2 16:01:16 2022
 @author: Javid
 """
 import numpy as np
+import os 
+import re
+
+
 
 
 def add_volume(directory : str, volume,plane_nr):
@@ -205,5 +209,36 @@ def add_neuronLabels(directory,results,nr_of_planes,Lx, Ly):
     results['neuronLabels'] = np.roll(neuronLabels,-2,axis=0)
     
 
-        
-        
+
+def get_factMeter_distZ(directory):
+    px_size_pattern = "x.pixel.sz"
+    dist_z_pattern = "total.z.distance"
+    factor_meter = 0
+    dist_z = 0
+    
+    
+    file_list = os.listdir(directory)
+    
+    for file in file_list:
+        if file.endswith(".ini"):
+            with open(os.path.join(directory, file),'r') as f:
+                value = f.read()
+                index_factor_meter = re.search(px_size_pattern, value).end()
+                factor_meter = value[index_factor_meter+3:index_factor_meter+17]
+
+                try:
+                    index_dist_z = re.search(dist_z_pattern, value).end()
+                    dist_z = value[index_dist_z+3:index_dist_z+18]
+                except AttributeError:
+                    print("no z distance")
+                    print(f"Factor meter: {float(factor_meter)*10**6} micro meter")
+                    print(f"total z distance: {dist_z}")
+                    return float(factor_meter),dist_z
+    print(f"Factor meter: {float(factor_meter)*10**6} micro meter")
+    print(f"total z distance: {dist_z} micro meter")
+                
+    return float(factor_meter)*10**6, float(dist_z)
+            
+                
+                
+            

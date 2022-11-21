@@ -6,14 +6,16 @@ Created on Mon Oct  3 12:31:53 2022
 """
 import numpy as np
 import scipy.io
+from UtilsForTransformation import *
+
 
 
 class Transform_results:
     
     
     
-    def __init__(self,directory:str,factor_meter,dist_z):
-        self.__results = self.__transform_results(directory,factor_meter,dist_z)
+    def __init__(self,directory:str,last_plane = False):
+        self.__results = self.__transform_results(directory,last_plane)
         self.directory = directory
         
         
@@ -31,7 +33,7 @@ class Transform_results:
         scipy.io.savemat(self.directory+'/results.mat',self.__results)
         print(f'your results is saved in the directory: {self.directory} as a results.mat file')
     
-    def __transform_results(self,directory: str,factor_meter,dist_z) ->dict:
+    def __transform_results(self,directory: str,last_plane) ->dict:
         results = {}
         
         ops = np.load(directory+'/plane0/ops.npy',allow_pickle=True).item() 
@@ -39,12 +41,15 @@ class Transform_results:
         nr_of_planes = ops['nplanes']
         Lx, Ly = ops['Lx'], ops['Ly']
         nr_of_frames = ops['nframes']
-        #factor_meter = 0.268076
-       
+        factor_meter, dist_z = get_factMeter_distZ(directory)
+        
+        end = nr_of_planes - 1
+        if last_plane:  #weather to include the last plane in the results file.
+            end = nr_of_planes #if include then runs thor all processed planes
         
                           
         
-        l = self.__create_px_position_list(directory, nr_of_planes)
+        l = self.__create_px_position_list(directory, nr_of_planes)[:end]
         
         
         
@@ -66,7 +71,7 @@ class Transform_results:
         results['trace'] = trace
         print('Added Trace')
         print()
-        results['position'] = self.__calculate_space_postion(l, factor_meter, Ly,dist_z)
+        results['position'] = self.__calculate_space_postion(l, factor_meter, Ly,dist_z,nr_of_planes)
         print('Added position')
         print()
         self.__add_neuronLabels(directory, results, nr_of_planes, Lx, Ly)
@@ -176,12 +181,11 @@ class Transform_results:
         return np.roll(px_position_list,-2, axis = 0)
                                          
                         
-    def __calculate_space_postion(self,pixel_position_list,factor_meter,Ly,dist_z):
+    def __calculate_space_postion(self,pixel_position_list,factor_meter,Ly,dist_z,nr_of_planes):
         
         
-        nb_planes =  len(pixel_position_list)
-        
-        
+        nb_planes =  nr_of_planes
+
         if nb_planes == 1:
             m = np.transpose(pixel_position_list[0])
             
@@ -190,22 +194,27 @@ class Transform_results:
             
         else:
             #dist_z = 80 #in micrometers
+            
             step_z = dist_z/(nb_planes-1)
             maxY  = Ly*factor_meter
             alpha = np.arcsin(step_z/maxY)
+        
             
             
             horiz_plane = np.sqrt(maxY**2+step_z**2)
-            returnning_plane = np.sqrt(horiz_plane**2+(7*step_z)**2)
+            returnning_plane = np.sqrt(horiz_plane**2+((nb_planes-1)*step_z)**2)
             fact = returnning_plane/maxY
             factor_meter_returning_plane = factor_meter*fact
             
             maxY_returning_plane = Ly*factor_meter_returning_plane
-            beta = np.arcsin(7*step_z/maxY_returning_plane)
+            beta = np.arcsin((nb_planes-1)*step_z/maxY_returning_plane)
             
+            initial_depth = [i*step_z for i in range(nb_planes)]
+            final_depth = [(i+1)*step_z for i in range(nb_planes-1)]
+            final_depth.append(0)
             
-            initial_depth = [0, step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z]
-            final_depth   = [step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z, 0]
+            #initial_depth = [0, step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z]
+            #final_depth   = [step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z, 0]
             
             for plane_nr, plane in enumerate(pixel_position_list):
                 
@@ -225,6 +234,7 @@ class Transform_results:
                     np.transpose(pixel_position_list[plane_nr])[0] = x
                     np.transpose(pixel_position_list[plane_nr])[1] = y_new
                     np.transpose(pixel_position_list[plane_nr])[2] = z_new
+                    print("calculated returning plane postiton")
                     
                 else:
                     m = np.transpose(plane)
@@ -241,6 +251,7 @@ class Transform_results:
                     np.transpose(pixel_position_list[plane_nr])[0] = x
                     np.transpose(pixel_position_list[plane_nr])[1] = y_new
                     np.transpose(pixel_position_list[plane_nr])[2] = z_new
+                    
             
             return np.vstack(pixel_position_list)                 
                 
@@ -274,4 +285,5 @@ class Transform_results:
         
         
         results['neuronLabels'] = np.roll(neuronLabels,-2,axis=0)
+
 
