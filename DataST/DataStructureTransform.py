@@ -41,7 +41,10 @@ class Transform_results:
         nr_of_planes = ops['nplanes']
         Lx, Ly = ops['Lx'], ops['Ly']
         nr_of_frames = ops['nframes']
-        factor_meter, dist_z = get_factMeter_distZ(directory)
+        metadata = get_metadata(directory)
+        
+        
+        factor_meter, dist_z = metadata['x.pixel.sz'],metadata['total.z.distance']
         
         
         
@@ -52,12 +55,11 @@ class Transform_results:
             end = nr_of_planes-1 #if include then runs thor all processed planes
             nr_of_cells =nr_of_cells - len(pixel_position_list[-1])
         
-                          
+        metadata['dim'] = [Lx,Ly,end,nr_of_frames]                  
     
         
         
         volume = np.empty(shape = (nr_of_planes,Ly,Lx))
-        #trace = np.empty(shape= (0,nr_of_frames))
         trace = []
         
         
@@ -78,6 +80,7 @@ class Transform_results:
         self.__add_neuronLabels(directory, results, nr_of_planes, Lx, Ly,end)
         print('Added neuronLabels')
         print()
+        print('Added metadata')
         
         return results
         
@@ -289,31 +292,9 @@ class Transform_results:
                 
                 for x,y in zip(X,Y):
                     neuronLabels[plane_nr,y,x] = cell_nr+cell_count
-            
-            
-        
-        
-        """ 
-        for plane in range(nr_of_planes):
-        
-            roi_stat = np.load(directory+'/Plane'+str(plane)+ '/stat.npy',allow_pickle = True)
-            iscell = np.load(directory+'/Plane'+str(plane)+'/iscell.npy',allow_pickle = True)
-            bool_iscell = np.array([True if roi[0]==1 else False for roi in iscell])
-            
-            cell_stat = roi_stat[bool_iscell]
-            
-            cell_count  = 0
-            
-            for cell_nr, cell in enumerate(cell_stat):
-                cell_count+=1
-                
-                X,Y = cell['xpix'][~cell['overlap']],cell['ypix'][~cell['overlap']]
-                
-                for x,y in zip(X,Y):
-                    neuronLabels[plane,y,x] = cell_nr+cell_count
-            """        
-        
         
         results['neuronLabels'] = neuronLabels
+        
+    
 
 

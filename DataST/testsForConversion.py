@@ -37,7 +37,7 @@ plt.scatter(x, y)
 plt.show()
 """
 #Test get_factMeter_distZ
-"""
+"""git
 print("testing get_factMeter_distZ")
 get_factMeter_distZ(directory2)
 """
@@ -46,6 +46,7 @@ neuronLabels = results_obj.get_results['neuronLabels']
 
 
 #Test Trace
+"""
 trace = results_obj.get_results['trace']
 print(len(trace))
 
@@ -53,6 +54,6 @@ print(len(trace))
 print(trace[0])
 print(trace[1])
 print(trace[2])
-
+"""
 
 
