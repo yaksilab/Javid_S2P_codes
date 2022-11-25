@@ -24,7 +24,7 @@ Table of contents
 - single channel
 - dualchannel 
 - single plane
-- multiplane, plane bigger then two, no support for two planes, as it is assumed no data is created with two planes
+- multiplane (**no support for two and three planes**)
 - save as mat file, this is for matlab
 - save as npy file, this is for numpy
 
@@ -35,8 +35,9 @@ So far the transformed results contains the following data
 2. trace
 3. position
 4. neuronLabel
+5. metadata
 
-more data will be added soon.
+More data from suite2p can be added, open an issue for such.
 
 ## How to use 
 
@@ -49,18 +50,20 @@ import the the module DataStructureTransform
 
 >- <code> import DataStructureTransform* </code>
 
+First it is **Important that you have a copy of your config file in the suite2p folder** that you want to convert the data from.
+
 create a transform object using <code>Transform_results</code> object, do this by giving the object initilizer the nessecery parameters
 1. first parameter is directory path, where your suite2p data is located
-2. second parameter is factor_meter, this how big a pixel_size is
-3. third parameter is total_z_distance
+2. second parameter (optional), weather if you want to include the last plane in your recording. Default value is False. 
+
  
 Eksemple:
 
->- <code> results_obj = Transform_results(directory, 0.3, 80) </code>
+>- <code> results_obj = Transform_results(directory) </code>
 
 To retieve the transformed results
 
->- <code> results = results_obj.get_results() </code>
+>- <code> results = results_obj.get_results </code>
 
 To save as npy file
 
