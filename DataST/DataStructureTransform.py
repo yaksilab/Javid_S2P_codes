@@ -44,18 +44,18 @@ class Transform_results:
         metadata = get_metadata(directory)
         
         
-        factor_meter, dist_z = metadata['x.pixel.sz'],metadata['total.z.distance']
+        factor_meter, dist_z = float(metadata['x.pixel.sz'])*10**7,float(metadata['total.z.distance'])
         
         
         
         pixel_position_list , nr_of_cells = self.__create_px_position_list(directory, nr_of_planes)
         
-        end = nr_of_planes
+        new_nr_of_planes = nr_of_planes
         if not last_plane and nr_of_planes>1:  #weather to include the last plane in the results file.
-            end = nr_of_planes-1 #if include then runs thor all processed planes
+            new_nr_of_planes = nr_of_planes-1 #if include then runs thor all processed planes
             nr_of_cells =nr_of_cells - len(pixel_position_list[-1])
         
-        metadata['dim'] = [Lx,Ly,end,nr_of_frames]                  
+        metadata['dim'] = [Lx,Ly,new_nr_of_planes,nr_of_frames]                  
     
         
         
@@ -68,18 +68,19 @@ class Transform_results:
             self.__add_volume(directory, volume, plane_nr)
             self.__add_trace(directory, trace, plane_nr,nr_of_frames)
 
-        results['volume'] = np.roll(volume,-2, axis = 0)[:end]
+        results['volume'] = np.roll(volume,-2, axis = 0)[:new_nr_of_planes]
         print('Added volume')
         print()
-        results['trace'] = np.vstack(np.roll(trace, -2, axis= 0)[:end])
+        results['trace'] = np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])
         print('Added Trace')
         print()
-        results['position'] = self.__calculate_space_postion(pixel_position_list[:end], factor_meter, Ly,dist_z,nr_of_planes,nr_of_cells)
+        results['position'] = self.__calculate_space_postion(pixel_position_list[:new_nr_of_planes], factor_meter, Ly,dist_z,nr_of_planes,nr_of_cells)
         print('Added position')
         print()
-        self.__add_neuronLabels(directory, results, nr_of_planes, Lx, Ly,end)
+        self.__add_neuronLabels(directory, results, nr_of_planes, Lx, Ly,new_nr_of_planes)
         print('Added neuronLabels')
         print()
+        results['metadata'] = metadata
         print('Added metadata')
         
         return results
@@ -263,14 +264,14 @@ class Transform_results:
                 
                 
 
-    def __add_neuronLabels(self,directory,results,nr_of_planes,Lx, Ly,end):
+    def __add_neuronLabels(self,directory,results,nr_of_planes,Lx, Ly,new_nr_of_planes):
        
         #print('Lx: ',Lx,'Ly: ',Ly)
         
-        neuronLabels = np.zeros(shape = (nr_of_planes,Ly,Lx))
+        neuronLabels = np.zeros(shape = (new_nr_of_planes,Ly,Lx))
         plane_cell_stat_list = []
         
-        for plane in range(nr_of_planes):
+        for plane in range(new_nr_of_planes):
         
             roi_stat = np.load(directory+'/Plane'+str(plane)+ '/stat.npy',allow_pickle = True)
             iscell = np.load(directory+'/Plane'+str(plane)+'/iscell.npy',allow_pickle = True)
@@ -281,7 +282,7 @@ class Transform_results:
             
         plane_cell_stat_list = np.roll(plane_cell_stat_list, -2,axis = 0)
         
-        for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:end]):
+        for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:new_nr_of_planes]):
             
             cell_count  = 0
             

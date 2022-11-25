@@ -14,7 +14,7 @@ from UtilsForTransformation import create_px_position_list
 
 directory1 = "C:/YaksiData/AnnData/Sixplanetiff/suite2p"
 directory2 = 'C:/YaksiData/Small data/suite2p' 
-results_obj = Transform_results(directory2)
+results_obj = Transform_results(directory1)
 
 #Test for result
 """
@@ -42,7 +42,7 @@ print("testing get_factMeter_distZ")
 get_factMeter_distZ(directory2)
 """
 #Test NeuronLabels
-neuronLabels = results_obj.get_results['neuronLabels']
+#neuronLabels = results_obj.get_results['neuronLabels']
 
 
 #Test Trace
@@ -55,5 +55,7 @@ print(trace[0])
 print(trace[1])
 print(trace[2])
 """
-
+results_obj.save_as_mat()
+results = results_obj.get_results
+print(results['metadata'])
 
