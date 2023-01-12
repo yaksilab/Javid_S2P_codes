@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 
 from DataStructureTransform import Transform_results
 from UtilsForTransformation import create_px_position_list
+from binary import BinaryRWFile
 
 directory1 = "C:/YaksiData/AnnData/Sixplanetiff/suite2p"
 directory2 = 'C:/YaksiData/Small data/suite2p' 
@@ -37,12 +38,17 @@ plt.scatter(x, y)
 plt.show()
 """
 #Test get_factMeter_distZ
-"""git
+"""
 print("testing get_factMeter_distZ")
 get_factMeter_distZ(directory2)
 """
 #Test NeuronLabels
 #neuronLabels = results_obj.get_results['neuronLabels']
+results = results_obj.get_results
+
+print(np.shape(results['neuronLabels']))
+print()
+
 
 
 #Test Trace
@@ -55,7 +61,20 @@ print(trace[0])
 print(trace[1])
 print(trace[2])
 """
+"""
 results_obj.save_as_mat()
 results = results_obj.get_results
-print(results['metadata'])
+print(results['metadata'])"""
 
+
+#how to open binary file in numpy format
+"""
+reg_bin = "C://YaksiData//Small data//suite2p//plane0//data.bin"
+Lx = 512
+Ly = 510
+
+
+with BinaryRWFile(Ly=Ly, Lx=Lx, filename=reg_bin) as f_raw:
+    print(f_raw[0])
+"""    
+    

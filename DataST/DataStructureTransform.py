@@ -59,7 +59,7 @@ class Transform_results:
     
         
         
-        volume = np.empty(shape = (nr_of_planes,Ly,Lx))
+        volume = np.empty(shape = (nr_of_planes,Lx,Ly))
         trace = []
         
         
@@ -68,7 +68,7 @@ class Transform_results:
             self.__add_volume(directory, volume, plane_nr)
             self.__add_trace(directory, trace, plane_nr,nr_of_frames)
 
-        results['volume'] = np.roll(volume,-2, axis = 0)[:new_nr_of_planes]
+        results['volume'] = np.transpose(np.roll(volume,-2, axis = 0)[:new_nr_of_planes]) #original shape is (nr_planes,lx,ly), after transpose shape = (ly,lx,nr_planes)
         print('Added volume')
         print()
         results['trace'] = np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])
@@ -93,7 +93,7 @@ class Transform_results:
                 
         meanImg = ops['meanImg']
         
-        volume[plane_nr] = meanImg
+        volume[plane_nr] = np.transpose(meanImg)
         
         
         
@@ -219,7 +219,7 @@ class Transform_results:
             
             #initial_depth = [0, step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z]
             #final_depth   = [step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z, 0]
-            cell_index = np.arange(nr_of_cells)
+            cell_index = np.arange(1,nr_of_cells+1)
             
             for plane_nr, plane in enumerate(pixel_position_list):
                 
@@ -261,14 +261,13 @@ class Transform_results:
             position_matrix = np.vstack(pixel_position_list)  
             np.transpose(position_matrix)[3] = cell_index
             return position_matrix               
-                
-                
+                                
 
     def __add_neuronLabels(self,directory,results,nr_of_planes,Lx, Ly,new_nr_of_planes):
        
         #print('Lx: ',Lx,'Ly: ',Ly)
         
-        neuronLabels = np.zeros(shape = (new_nr_of_planes,Ly,Lx))
+        neuronLabels = np.zeros(shape = (Ly,Lx,new_nr_of_planes,))
         plane_cell_stat_list = []
         
         for plane in range(new_nr_of_planes):
@@ -281,21 +280,21 @@ class Transform_results:
             plane_cell_stat_list.append(cell_stat)
             
         plane_cell_stat_list = np.roll(plane_cell_stat_list, -2,axis = 0)
-        
+        cell_count  = 0
         for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:new_nr_of_planes]):
             
-            cell_count  = 0
+            
             
             for cell_nr, cell in enumerate(cell_stat):
                 cell_count+=1
-                
+                if cell_nr+cell_count==1:
+                    print(cell_nr+cell_count)
                 X,Y = cell['xpix'][~cell['overlap']],cell['ypix'][~cell['overlap']]
                 
                 for x,y in zip(X,Y):
-                    neuronLabels[plane_nr,y,x] = cell_nr+cell_count
+                    
+                    neuronLabels[y,x,plane_nr] = cell_nr+cell_count
         
         results['neuronLabels'] = neuronLabels
         
-    
-
 
