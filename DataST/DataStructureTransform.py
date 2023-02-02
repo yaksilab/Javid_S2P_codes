@@ -44,18 +44,15 @@ class Transform_results:
         metadata = get_metadata(directory)
         
         
-        factor_meter, dist_z = float(metadata['x.pixel.sz'])*10**7,float(metadata['total.z.distance'])
-        
-        
-        
         new_nr_of_planes = nr_of_planes
         if not last_plane and nr_of_planes>1:  #weather to include the last plane in the results file.
             new_nr_of_planes = nr_of_planes-1 #if include then runs thor all processed planes
-            #nr_of_cells = nr_of_cells - len(pixel_position_list[-1])
+            
         
         metadata['dim'] = [Lx,Ly,new_nr_of_planes,nr_of_frames]                  
         
-        pixel_position_list , nr_of_cells = self.__create_px_position_list(directory, new_nr_of_planes)
+        pixel_position_list = self.__create_px_position_list(directory, nr_of_planes)[:new_nr_of_planes]
+        nr_of_cells = np.sum([len(s) for s in pixel_position_list])
         
         volume = np.empty(shape = (nr_of_planes,Ly,Lx))
         trace = []
@@ -70,9 +67,9 @@ class Transform_results:
         print('Added volume')
         print()
         results['trace'] = np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])
-        print('Added Trace')
+        print('Added Trace with number of cells:', len(np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])))
         print()
-        results['position'] = self.__calculate_space_postion(pixel_position_list[:new_nr_of_planes], factor_meter, Ly,dist_z,nr_of_planes,nr_of_cells)
+        results['position'] = self.__calculate_space_postion(pixel_position_list[:new_nr_of_planes], metadata, Ly,nr_of_planes,nr_of_cells)
         print('Added position')
         print()
         self.__add_neuronLabels(directory, results, nr_of_planes, Lx, Ly,new_nr_of_planes)
@@ -98,14 +95,12 @@ class Transform_results:
     def __add_trace(self,directory : str, trace, plane_nr,nr_of_frames):
         
         F_roi = np.load(directory+'/plane'+str(plane_nr)+'/F.npy', allow_pickle=True)
-        
-        
         iscell = np.load(directory+'/plane'+str(plane_nr)+ '/iscell.npy',allow_pickle=True)
-        
         bool_iscell = np.array([True if roi[0]==1 else False for roi in iscell])
-        
         F_cell = F_roi[bool_iscell]
-        #print(np.shape(F_cell))
+        
+        #print("number of cells in each plane in Trace: ",len(F_cell))
+       
         
         frame_diff = nr_of_frames -np.shape(F_cell)[1] #this is if there are frames that are excluded
         
@@ -117,9 +112,9 @@ class Transform_results:
             
             c = np.zeros((np.shape(F_cell)[0],abs(frame_diff)))# maybe need to add data type float32
             F_cell = np.append(F_cell,c,axis = 1)
-            #print(np.shape(F_cell))
+            
         trace.append(F_cell)
-        #return np.append(trace,F_cell,axis =0)
+        
         
     def __create_px_position_list(self,directory: str, nr_of_planes):
         
@@ -145,7 +140,8 @@ class Transform_results:
                 pixel_position[cell_nr] = [x_px, y_px, nr_of_planes, cell_nr, nr_of_planes]
             px_position_list.append(pixel_position)
             
-            return px_position_list,totall_nr_of_cells
+           
+            return px_position_list
         
         else:
             
@@ -166,8 +162,7 @@ class Transform_results:
                 for cell_nr, cell in enumerate(cell_stat):
                     
                     y_px, x_px = cell['med']
-                    
-                    
+                                        
                     if plane_nr ==0:
                         
                         px_position[cell_nr] = [x_px, y_px, nr_of_planes -2 , cell_nr + cell_count, nr_of_planes -1]
@@ -177,26 +172,30 @@ class Transform_results:
                         
                     else:
                         px_position[cell_nr] = [x_px, y_px, plane_nr-1 , cell_nr + cell_count, plane_nr -1]
-                cell_count += nr_of_cells        
+                cell_count += nr_of_cells    
+                
                 px_position_list.append(px_position)
                 
-        return np.roll(px_position_list,-2, axis = 0),cell_count
+        px_position_list = np.roll(px_position_list,-2, axis = 0)
+      
+        return px_position_list
                                          
                         
-    def __calculate_space_postion(self,pixel_position_list,factor_meter,Ly,dist_z,nr_of_planes,nr_of_cells):
+    def __calculate_space_postion(self,pixel_position_list,metadata,Ly,nr_of_planes,nr_of_cells):
         
         
+        factor_meter = float(metadata['x.pixel.sz'])*10**7
         nb_planes =  nr_of_planes
 
         if nb_planes == 1:
+            
             m = np.transpose(pixel_position_list[0])
             
             m[0],m[1] = m[0]*factor_meter,m[1]*factor_meter
-            return [np.transpose(m)]
+            return np.transpose(m)
             
         else:
-            #dist_z = 80 #in micrometers
-            
+            dist_z = float(metadata['total.z.distance'])
             step_z = dist_z/(nb_planes-1)
             maxY  = Ly*factor_meter
             alpha = np.arcsin(step_z/maxY)
@@ -214,9 +213,6 @@ class Transform_results:
             initial_depth = [i*step_z for i in range(nb_planes)]
             final_depth = [(i+1)*step_z for i in range(nb_planes-1)]
             final_depth.append(0)
-            
-            #initial_depth = [0, step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z]
-            #final_depth   = [step_z, 2*step_z, 3*step_z, 4*step_z, 5*step_z, 6*step_z, 7*step_z, 0]
             
             cell_index = np.arange(1,nr_of_cells+1)
             
@@ -263,13 +259,11 @@ class Transform_results:
                                 
 
     def __add_neuronLabels(self,directory,results,nr_of_planes,Lx, Ly,new_nr_of_planes):
-       
-        #print('Lx: ',Lx,'Ly: ',Ly)
         
         neuronLabels = np.zeros(shape = (Lx,Ly,new_nr_of_planes,))
         plane_cell_stat_list = []
         
-        for plane in range(new_nr_of_planes):
+        for plane in range(nr_of_planes):
         
             roi_stat = np.load(directory+'/Plane'+str(plane)+ '/stat.npy',allow_pickle = True)
             iscell = np.load(directory+'/Plane'+str(plane)+'/iscell.npy',allow_pickle = True)
@@ -283,14 +277,15 @@ class Transform_results:
         cell_count  = 0
         for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:new_nr_of_planes]):
             
-            for cell_nr, cell in enumerate(cell_stat):
-                cell_count+=1
+            for cell_nr, cell in enumerate(cell_stat,start=cell_count):
+                cell_count +=1
                 X,Y = cell['xpix'][~cell['overlap']],cell['ypix'][~cell['overlap']]
-                
+              
                 for x,y in zip(X,Y):
-                    neuronLabels[x,y,plane_nr] = cell_nr+cell_count ##Change the index here
-            
-        
+                    
+                    neuronLabels[x,y,plane_nr] = cell_nr
+        print("cekk_ciunt in neuronlabels:", cell_count)
+
         results['neuronLabels'] = neuronLabels
         
 
