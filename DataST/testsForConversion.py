@@ -7,15 +7,16 @@ Created on Mon Nov 21 14:23:40 2022
 import matplotlib.pyplot as plt
 import numpy as np
 
-import plotly.graph_objects as go
+#import plotly
+#import plotly.graph_objects as go
 
 from DataStructureTransform import Transform_results
-from UtilsForTransformation import create_px_position_list
+
 from binary import BinaryRWFile
 
 directory1 = "C:/YaksiData/AnnData/Sixplanetiff/suite2p"
 directory2 = 'C:/YaksiData/Small data/suite2p' 
-results_obj = Transform_results(directory1)
+results_obj = Transform_results(directory2,True)
 
 #Test for result
 """
@@ -24,43 +25,54 @@ results = results_obj.get_results['volume']
 """
 
 #Test position
-"""
-print("Testing Postion")
 
+
+print("Testing Postion")
 
 pos = np.transpose(results_obj.get_results['position'])
 x ,y , z = pos[0], pos[1], pos[2]
-fig = go.Figure(data=[go.Scatter3d(x=x, y=y, z=z, mode='markers')])
-fig.show()
-print(pos[1])
-
+#fig = go.Figure(data=[go.Scatter3d(x=x, y=y, z=z, mode='markers')])
+#ig.show()
+#print(pos[1])
+#will 
 plt.scatter(x, y)
 plt.show()
+
+
+#test volume
 """
+vol = results_obj.get_results['volume']
+print(np.shape(vol))
+
+"""
+
+
+
 #Test get_factMeter_distZ
 """
 print("testing get_factMeter_distZ")
 get_factMeter_distZ(directory2)
 """
+
+
 #Test NeuronLabels
-#neuronLabels = results_obj.get_results['neuronLabels']
+
+neuronLabels = results_obj.get_results['neuronLabels']
 results = results_obj.get_results
 
-print(np.shape(results['neuronLabels']))
-print()
-
+#Testing position 
+pos = results_obj.get_results['position']
+print("this is shape of position:",np.shape(pos))
 
 
 #Test Trace
-"""
+
+#getting 
 trace = results_obj.get_results['trace']
-print(len(trace))
+print(" this is the length of trace:", np.shape(trace))
 
 
-print(trace[0])
-print(trace[1])
-print(trace[2])
-"""
+
 """
 results_obj.save_as_mat()
 results = results_obj.get_results
