@@ -80,7 +80,7 @@ class Transform_results:
         print()
         results['metadata'] = metadata
         print('Added metadata')
-        results['spks']
+        results['spks']=spks
         print("added the deconvolved traces")
         
         return results

@@ -14,9 +14,10 @@ from DataStructureTransform import Transform_results
 
 from binary import BinaryRWFile
 
-directory1 = "C:/YaksiData/AnnData/Sixplanetiff/suite2p"
+directory1 = "X:/anna/Data/L-AP4 ex vivo/2023_01_05/20230105_10_01_05_AO_HuCGCaMP6s_21dpf_WASH_LAP4_exvivo_f001/suite2p"
 directory2 = 'C:/YaksiData/Small data/suite2p' 
 results_obj = Transform_results(directory2,True)
+results_obj = Transform_results(directory1)
 
 #Test for result
 """
