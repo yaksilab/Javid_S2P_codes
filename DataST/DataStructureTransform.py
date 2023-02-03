@@ -50,18 +50,21 @@ class Transform_results:
             
         
         metadata['dim'] = [Lx,Ly,new_nr_of_planes,nr_of_frames]                  
-        
+      
         pixel_position_list = self.__create_px_position_list(directory, nr_of_planes)[:new_nr_of_planes]
         nr_of_cells = np.sum([len(s) for s in pixel_position_list])
         
         volume = np.empty(shape = (nr_of_planes,Ly,Lx))
         trace = []
+        spks = []
+
         
         
         for plane_nr in range(nr_of_planes):
 
             self.__add_volume(directory, volume, plane_nr)
             self.__add_trace(directory, trace, plane_nr,nr_of_frames)
+            self.__add_spks(directory, spks, plane_nr, nr_of_frames)
 
         results['volume'] = np.transpose(np.roll(volume,-2, axis = 0)[:new_nr_of_planes]) #original shape is (nr_planes,lx,ly), after transpose shape = (ly,lx,nr_planes)
         print('Added volume')
@@ -77,6 +80,8 @@ class Transform_results:
         print()
         results['metadata'] = metadata
         print('Added metadata')
+        results['spks']
+        print("added the deconvolved traces")
         
         return results
         
@@ -277,7 +282,7 @@ class Transform_results:
         cell_count  = 0
         for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:new_nr_of_planes]):
             
-            for cell_nr, cell in enumerate(cell_stat,start=cell_count):
+            for cell_nr, cell in enumerate(cell_stat,start=cell_count+1):
                 cell_count +=1
                 X,Y = cell['xpix'][~cell['overlap']],cell['ypix'][~cell['overlap']]
               
@@ -289,3 +294,22 @@ class Transform_results:
         results['neuronLabels'] = neuronLabels
         
 
+    def __add_spks(self,directory: str, spks, plane_nr, nr_of_frames):
+        spks_roi = np.load(directory+'/plane'+str(plane_nr)+'/spks.npy', allow_pickle=True)
+        iscell = np.load(directory+'/plane'+str(plane_nr)+ '/iscell.npy',allow_pickle=True)
+        bool_iscell = np.array([True if roi[0]==1 else False for roi in iscell])
+        spks_cell = spks_roi[bool_iscell]
+
+        frame_diff = nr_of_frames -np.shape(spks_cell)[1] #this is if there are frames that are excluded
+        
+        
+        if frame_diff <0:
+            c = np.zeros((np.shape(spks)[0],abs(frame_diff)))#maybe need to add data type float32
+            spks = np.append(spks,c, axis = 1)
+        elif frame_diff >0:
+            
+            c = np.zeros((np.shape(spks_cell)[0],abs(frame_diff)))# maybe need to add data type float32
+            F_cell = np.append(spks_cell,c,axis = 1)
+            
+        spks.append(spks_cell)
+        
