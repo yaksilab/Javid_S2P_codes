@@ -16,7 +16,7 @@ from binary import BinaryRWFile
 
 directory1 = "C:/YaksiData/AnnData/Sixplanetiff/suite2p"
 directory2 = 'C:/YaksiData/Small data/suite2p' 
-results_obj = Transform_results(directory2,True)
+results_obj = Transform_results(directory1,True)
 
 #Test for result
 """

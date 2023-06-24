@@ -56,6 +56,7 @@ class Transform_results:
         
         volume = np.empty(shape = (nr_of_planes,Ly,Lx))
         trace = []
+        trace2 = []
         spks = []
 
         
@@ -63,13 +64,15 @@ class Transform_results:
         for plane_nr in range(nr_of_planes):
 
             self.__add_volume(directory, volume, plane_nr)
-            self.__add_trace(directory, trace, plane_nr,nr_of_frames)
+            self.__add_trace(directory, trace, trace2, plane_nr,nr_of_frames)
             self.__add_spks(directory, spks, plane_nr, nr_of_frames)
 
         results['volume'] = np.transpose(np.roll(volume,-2, axis = 0)[:new_nr_of_planes]) #original shape is (nr_planes,lx,ly), after transpose shape = (ly,lx,nr_planes)
         print('Added volume')
         print()
         results['trace'] = np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])
+        if int(float(metadata["no.of.channels"])) == 2:
+            results['trace_ch_2'] = np.vstack(np.roll(trace2, -2, axis= 0)[:new_nr_of_planes])
         print('Added Trace with number of cells:', len(np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])))
         print()
         results['position'] = self.__calculate_space_postion(pixel_position_list[:new_nr_of_planes], metadata, Ly,nr_of_planes,nr_of_cells)
@@ -80,7 +83,7 @@ class Transform_results:
         print()
         results['metadata'] = metadata
         print('Added metadata')
-        results['spks']
+        results['spks']=spks
         print("added the deconvolved traces")
         
         return results
@@ -97,15 +100,24 @@ class Transform_results:
         
         
         
-    def __add_trace(self,directory : str, trace, plane_nr,nr_of_frames):
+    def __add_trace(self,directory : str, trace, trace2, plane_nr,nr_of_frames):
+        
+        ch2: bool = False
         
         F_roi = np.load(directory+'/plane'+str(plane_nr)+'/F.npy', allow_pickle=True)
         iscell = np.load(directory+'/plane'+str(plane_nr)+ '/iscell.npy',allow_pickle=True)
         bool_iscell = np.array([True if roi[0]==1 else False for roi in iscell])
         F_cell = F_roi[bool_iscell]
         
-        #print("number of cells in each plane in Trace: ",len(F_cell))
-       
+
+        try:
+            F_roi2 = np.load(directory+'/plane'+str(plane_nr)+'/F_chan2.npy', allow_pickle=True)
+            F_cell2 = F_roi2[bool_iscell]
+            ch2 = not ch2
+        except FileNotFoundError:
+            print("no channel 2 present")
+            
+            
         
         frame_diff = nr_of_frames -np.shape(F_cell)[1] #this is if there are frames that are excluded
         
@@ -113,12 +125,19 @@ class Transform_results:
         if frame_diff <0:
             c = np.zeros((np.shape(trace)[0],abs(frame_diff)))#maybe need to add data type float32
             trace = np.append(trace,c, axis = 1)
+            if ch2:
+              trace2 = np.append(trace2,c, axis = 1)
+            
         elif frame_diff >0:
             
             c = np.zeros((np.shape(F_cell)[0],abs(frame_diff)))# maybe need to add data type float32
             F_cell = np.append(F_cell,c,axis = 1)
+            if ch2:
+              F_cell2 = np.append(F_cell2,c,axis= 1)
             
         trace.append(F_cell)
+        if ch2:
+          trace2.append(F_cell2)
         
         
     def __create_px_position_list(self,directory: str, nr_of_planes):

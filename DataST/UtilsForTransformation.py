@@ -10,12 +10,9 @@ import re
 
 
 
-
-
-
 def get_metadata(directory):
 
-    meta_data = {"experiment.name": "","experiment.type": "",r"volume.rate.\(in.Hz\)": "","x.pixel.sz": "","total.z.distance": ""}
+    meta_data = {"experiment.name": "","experiment.type": "",r"volume.rate.\(in.Hz\)": "","x.pixel.sz": "","total.z.distance": "","no.of.channels":""}
     file_list = os.listdir(directory)
     for file in file_list:
         if file.endswith(".ini"):
