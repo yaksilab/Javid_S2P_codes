@@ -23,12 +23,12 @@ class Transform_results:
     def get_results(self):
         return self.__results
     
-      
+    @property  
     def save_as_npy(self):
         np.save(self.directory+'/results',self.__results)
         print(f'your results is saved in the directory: {self.directory} as a results.npy file')
     
-    
+    @property
     def save_as_mat(self):
         scipy.io.savemat(self.directory+'/results.mat',self.__results)
         print(f'your results is saved in the directory: {self.directory} as a results.mat file')
@@ -70,9 +70,9 @@ class Transform_results:
         results['volume'] = np.transpose(np.roll(volume,-2, axis = 0)[:new_nr_of_planes]) #original shape is (nr_planes,lx,ly), after transpose shape = (ly,lx,nr_planes)
         print('Added volume')
         print()
-        results['trace'] = np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])
+        results['trace'] = np.vstack(np.roll(np.array(trace,dtype=object), -2, axis= 0)[:new_nr_of_planes])
         if int(float(metadata["no.of.channels"])) == 2:
-            results['trace_ch_2'] = np.vstack(np.roll(trace2, -2, axis= 0)[:new_nr_of_planes])
+            results['trace_ch_2'] = np.vstack(np.roll(np.array(trace2,dtype=object), -2, axis= 0)[:new_nr_of_planes])
         print('Added Trace with number of cells:', len(np.vstack(np.roll(trace, -2, axis= 0)[:new_nr_of_planes])))
         print()
         results['position'] = self.__calculate_space_postion(pixel_position_list[:new_nr_of_planes], metadata, Ly,nr_of_planes,nr_of_cells)
@@ -143,8 +143,7 @@ class Transform_results:
     def __create_px_position_list(self,directory: str, nr_of_planes):
         
         px_position_list = []
-        
-
+              
         
         if nr_of_planes == 1:
             
@@ -200,7 +199,7 @@ class Transform_results:
                 
                 px_position_list.append(px_position)
                 
-        px_position_list = np.roll(px_position_list,-2, axis = 0)
+        px_position_list = np.roll(np.array(px_position_list,dtype=object),-2, axis = 0)
       
         return px_position_list
                                          
@@ -296,7 +295,7 @@ class Transform_results:
             cell_stat = roi_stat[bool_iscell]
             plane_cell_stat_list.append(cell_stat)
             
-        plane_cell_stat_list = np.roll(plane_cell_stat_list, -2,axis = 0)
+        plane_cell_stat_list = np.roll(np.array(plane_cell_stat_list,dtype=object), -2,axis = 0)
         
         cell_count  = 0
         for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:new_nr_of_planes]):
