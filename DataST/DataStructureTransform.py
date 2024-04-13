@@ -66,9 +66,9 @@ class Transform_results:
             self.__add_trace(directory, trace, trace2, plane_nr,nr_of_frames)
             self.__add_spks(directory, spks, plane_nr, nr_of_frames)
             
-        trace = np.array(trace,dtype=object)
-        trace2 = np.array(trace2,dtype=object)
-        spks = np.array(spks,dtype=object)
+        trace = np.array(trace,dtype=np.float32)
+        trace2 = np.array(trace2,dtype=np.float32)
+        spks = np.array(spks,dtype=np.float32)
         
 
         results['volume'] = np.transpose(np.roll(volume,-2, axis = 0)[:new_nr_of_planes]) #original shape is (nr_planes,lx,ly), after transpose shape = (ly,lx,nr_planes)
@@ -127,14 +127,14 @@ class Transform_results:
         
         
         if frame_diff <0:
-            c = np.zeros((np.shape(trace)[0],abs(frame_diff)))#maybe need to add data type float32
+            c = np.zeros((np.shape(trace)[0],abs(frame_diff)),dtype=np.float32)
             trace = np.append(trace,c, axis = 1)
             if ch2:
               trace2 = np.append(trace2,c, axis = 1)
             
         elif frame_diff >0:
             
-            c = np.zeros((np.shape(F_cell)[0],abs(frame_diff)))# maybe need to add data type float32
+            c = np.zeros((np.shape(F_cell)[0],abs(frame_diff)),dtype=np.float32)
             F_cell = np.append(F_cell,c,axis = 1)
             if ch2:
               F_cell2 = np.append(F_cell2,c,axis= 1)
@@ -168,7 +168,7 @@ class Transform_results:
             px_position_list.append(pixel_position)
             
            
-            return np.array(px_position_list,dtype=object)
+            return np.array(px_position_list,dtype=np.float32)
         
         else:
             
@@ -203,7 +203,7 @@ class Transform_results:
                 
                 px_position_list.append(px_position)
                 
-        px_position_list = np.roll(np.array(px_position_list,dtype=object),-2, axis = 0)
+        px_position_list = np.roll(np.array(px_position_list,dtype=np.float32),-2, axis = 0)
       
         return px_position_list
                                          
@@ -311,7 +311,7 @@ class Transform_results:
                 for x,y in zip(X,Y):
                     
                     neuronLabels[x,y,plane_nr] = cell_nr
-        print("cekk_ciunt in neuronlabels:", cell_count)
+        print("cell_count in neuronlabels:", cell_count)
 
         results['neuronLabels'] = neuronLabels
         
@@ -326,12 +326,11 @@ class Transform_results:
         
         
         if frame_diff <0:
-            c = np.zeros((np.shape(spks)[0],abs(frame_diff)))#maybe need to add data type float32
+            c = np.zeros((np.shape(spks)[0],abs(frame_diff)),dtype=np.float32)            
             spks = np.append(spks,c, axis = 1)
         elif frame_diff >0:
             
-            c = np.zeros((np.shape(spks_cell)[0],abs(frame_diff)))# maybe need to add data type float32
+            c = np.zeros((np.shape(spks_cell)[0],abs(frame_diff)),dtype=np.float32)
             F_cell = np.append(spks_cell,c,axis = 1)
-            
         spks.append(spks_cell)
         
