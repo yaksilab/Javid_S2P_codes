@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "datast"
+version = "0.1.0"
+description = ""
+authors = ["javidr"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "s2p_to_yaksi_datastructure", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^2.2.1"
+scipy = "^1.15.0"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
