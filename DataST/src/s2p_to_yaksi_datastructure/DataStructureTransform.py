@@ -34,7 +34,7 @@ class Transform_results:
     def __transform_results(self, directory: str, last_plane) -> dict:
         results = {}
 
-        ops = np.load(directory + "/plane0/ops.npy", allow_pickle=True).item()
+        ops = np.load(directory + r"/plane0/ops.npy", allow_pickle=True).item()
 
         nr_of_planes = ops["nplanes"]
         Lx, Ly = ops["Lx"], ops["Ly"]
