@@ -7,26 +7,33 @@ Created on Mon Oct  3 12:31:53 2022
 import numpy as np
 import scipy.io
 from s2p_to_yaksi_datastructure.UtilsForTransformation import get_metadata
+import os
 
 
 class Transform_results:
 
     def __init__(self, directory: str, last_plane=False):
-        self.__results = self.__transform_results(directory, last_plane)
-        self.directory = directory
+        self.directory = os.path.normpath(directory)
+
+        if not os.path.exists(self.directory):
+            raise FileNotFoundError(f"Directory not found: {self.directory}")
+
+        self.__results = self.__transform_results(self.directory, last_plane)
 
     @property
     def get_results(self):
         return self.__results
 
     def save_as_npy(self):
-        np.save(self.directory + "/results", self.__results)
+        output_path = os.path.join(self.directory, "results.npy")
+        np.save(output_path, self.__results)
         print(
             f"your results is saved in the directory: {self.directory} as a results.npy file"
         )
 
     def save_as_mat(self):
-        scipy.io.savemat(self.directory + "/results.mat", self.__results)
+        output_path = os.path.join(self.directory, "results.mat")
+        scipy.io.savemat(output_path, self.__results)
         print(
             f"your results is saved in the directory: {self.directory} as a results.mat file"
         )
@@ -34,7 +41,14 @@ class Transform_results:
     def __transform_results(self, directory: str, last_plane) -> dict:
         results = {}
 
-        ops = np.load(directory + r"/plane0/ops.npy", allow_pickle=True).item()
+        # Check if plane0 directory exists and load ops.npy
+        plane0_path = os.path.join(directory, "plane0")
+        ops_path = os.path.join(plane0_path, "ops.npy")
+
+        if not os.path.exists(ops_path):
+            raise FileNotFoundError(f"Required file not found: {ops_path}")
+
+        ops = np.load(ops_path, allow_pickle=True).item()
 
         nr_of_planes = ops["nplanes"]
         Lx, Ly = ops["Lx"], ops["Ly"]
@@ -62,7 +76,6 @@ class Transform_results:
         spks = []
 
         for plane_nr in range(nr_of_planes):
-
             self.__add_volume(directory, volume, plane_nr)
             self.__add_trace(directory, trace, trace2, plane_nr, nr_of_frames)
             self.__add_spks(directory, spks, plane_nr, nr_of_frames)
@@ -105,30 +118,36 @@ class Transform_results:
         return results
 
     def __add_volume(self, directory: str, volume, plane_nr):
+        plane_path = os.path.join(directory, f"plane{plane_nr}")
+        ops_path = os.path.join(plane_path, "ops.npy")
 
-        ops = np.load(
-            directory + "/plane" + str(plane_nr) + "/ops.npy", allow_pickle=True
-        ).item()
+        if not os.path.exists(ops_path):
+            raise FileNotFoundError(f"Required file not found: {ops_path}")
+
+        ops = np.load(ops_path, allow_pickle=True).item()
         meanImg = ops["meanImg"]
         volume[plane_nr] = meanImg
 
     def __add_trace(self, directory: str, trace, trace2, plane_nr, nr_of_frames):
-
         ch2: bool = False
 
-        F_roi = np.load(
-            directory + "/plane" + str(plane_nr) + "/F.npy", allow_pickle=True
-        )
-        iscell = np.load(
-            directory + "/plane" + str(plane_nr) + "/iscell.npy", allow_pickle=True
-        )
+        plane_path = os.path.join(directory, f"plane{plane_nr}")
+        f_path = os.path.join(plane_path, "F.npy")
+        iscell_path = os.path.join(plane_path, "iscell.npy")
+
+        if not os.path.exists(f_path):
+            raise FileNotFoundError(f"Required file not found: {f_path}")
+        if not os.path.exists(iscell_path):
+            raise FileNotFoundError(f"Required file not found: {iscell_path}")
+
+        F_roi = np.load(f_path, allow_pickle=True)
+        iscell = np.load(iscell_path, allow_pickle=True)
         bool_iscell = np.array([True if roi[0] == 1 else False for roi in iscell])
         F_cell = F_roi[bool_iscell]
 
         try:
-            F_roi2 = np.load(
-                directory + "/plane" + str(plane_nr) + "/F_chan2.npy", allow_pickle=True
-            )
+            f_chan2_path = os.path.join(plane_path, "F_chan2.npy")
+            F_roi2 = np.load(f_chan2_path, allow_pickle=True)
             F_cell2 = F_roi2[bool_iscell]
             ch2 = not ch2
         except FileNotFoundError:
@@ -145,7 +164,6 @@ class Transform_results:
                 trace2 = np.append(trace2, c, axis=1)
 
         elif frame_diff > 0:
-
             c = np.zeros((np.shape(F_cell)[0], abs(frame_diff)), dtype=np.float32)
             F_cell = np.append(F_cell, c, axis=1)
             if ch2:
@@ -156,13 +174,20 @@ class Transform_results:
             trace2.append(F_cell2)
 
     def __create_px_position_list(self, directory: str, nr_of_planes):
-
         px_position_list = []
 
         if nr_of_planes == 1:
+            plane_path = os.path.join(directory, "plane0")
+            stat_path = os.path.join(plane_path, "stat.npy")
+            iscell_path = os.path.join(plane_path, "iscell.npy")
 
-            roi_stat = np.load(directory + "/Plane0/stat.npy", allow_pickle=True)
-            iscell = np.load(directory + "/Plane0/iscell.npy", allow_pickle=True)
+            if not os.path.exists(stat_path):
+                raise FileNotFoundError(f"Required file not found: {stat_path}")
+            if not os.path.exists(iscell_path):
+                raise FileNotFoundError(f"Required file not found: {iscell_path}")
+
+            roi_stat = np.load(stat_path, allow_pickle=True)
+            iscell = np.load(iscell_path, allow_pickle=True)
             bool_iscell = np.array([True if roi[0] == 1 else False for roi in iscell])
             cell_stat = roi_stat[bool_iscell]
             totall_nr_of_cells = len(cell_stat)
@@ -184,35 +209,32 @@ class Transform_results:
             return np.array(px_position_list, dtype=np.float32)
 
         else:
-
             cell_count = 0
 
             for plane_nr in range(nr_of_planes):
+                plane_path = os.path.join(directory, f"plane{plane_nr}")
+                stat_path = os.path.join(plane_path, "stat.npy")
+                iscell_path = os.path.join(plane_path, "iscell.npy")
 
-                roi_stat = np.load(
-                    directory + "/Plane" + str(plane_nr) + "/stat.npy",
-                    allow_pickle=True,
-                )
-                iscell = np.load(
-                    directory + "/Plane" + str(plane_nr) + "/iscell.npy",
-                    allow_pickle=True,
-                )
+                if not os.path.exists(stat_path):
+                    raise FileNotFoundError(f"Required file not found: {stat_path}")
+                if not os.path.exists(iscell_path):
+                    raise FileNotFoundError(f"Required file not found: {iscell_path}")
+
+                roi_stat = np.load(stat_path, allow_pickle=True)
+                iscell = np.load(iscell_path, allow_pickle=True)
                 bool_iscell = np.array(
                     [True if roi[0] == 1 else False for roi in iscell]
                 )
 
                 cell_stat = roi_stat[bool_iscell]
-
                 nr_of_cells = len(cell_stat)
-
                 px_position = np.empty(shape=(nr_of_cells, 5))
 
                 for cell_nr, cell in enumerate(cell_stat):
-
                     y_px, x_px = cell["med"]
 
                     if plane_nr == 0:
-
                         px_position[cell_nr] = [
                             x_px,
                             y_px,
@@ -220,7 +242,6 @@ class Transform_results:
                             cell_nr + cell_count,
                             nr_of_planes - 1,
                         ]
-
                     elif plane_nr == 1:
                         px_position[cell_nr] = [
                             x_px,
@@ -229,7 +250,6 @@ class Transform_results:
                             cell_nr + cell_count,
                             nr_of_planes,
                         ]
-
                     else:
                         px_position[cell_nr] = [
                             x_px,
@@ -239,8 +259,8 @@ class Transform_results:
                             plane_nr - 1,
                         ]
                 cell_count += nr_of_cells
-
                 px_position_list.append(px_position)
+
         px_position_list = px_position_list[2:] + px_position_list[:2]
         return px_position_list
 
@@ -333,13 +353,17 @@ class Transform_results:
         plane_cell_stat_list = []
 
         for plane in range(nr_of_planes):
+            plane_path = os.path.join(directory, f"plane{plane}")
+            stat_path = os.path.join(plane_path, "stat.npy")
+            iscell_path = os.path.join(plane_path, "iscell.npy")
 
-            roi_stat = np.load(
-                directory + "/Plane" + str(plane) + "/stat.npy", allow_pickle=True
-            )
-            iscell = np.load(
-                directory + "/Plane" + str(plane) + "/iscell.npy", allow_pickle=True
-            )
+            if not os.path.exists(stat_path):
+                raise FileNotFoundError(f"Required file not found: {stat_path}")
+            if not os.path.exists(iscell_path):
+                raise FileNotFoundError(f"Required file not found: {iscell_path}")
+
+            roi_stat = np.load(stat_path, allow_pickle=True)
+            iscell = np.load(iscell_path, allow_pickle=True)
             bool_iscell = np.array([True if roi[0] == 1 else False for roi in iscell])
 
             cell_stat = roi_stat[bool_iscell]
@@ -348,25 +372,28 @@ class Transform_results:
 
         cell_count = 0
         for plane_nr, cell_stat in enumerate(plane_cell_stat_list[:new_nr_of_planes]):
-
             for cell_nr, cell in enumerate(cell_stat, start=cell_count + 1):
                 cell_count += 1
                 X, Y = cell["xpix"][~cell["overlap"]], cell["ypix"][~cell["overlap"]]
 
                 for x, y in zip(X, Y):
-
                     neuronLabels[x, y, plane_nr] = cell_nr
         print("cell_count in neuronlabels:", cell_count)
 
         results["neuronLabels"] = neuronLabels
 
     def __add_spks(self, directory: str, spks, plane_nr, nr_of_frames):
-        spks_roi = np.load(
-            directory + "/plane" + str(plane_nr) + "/spks.npy", allow_pickle=True
-        )
-        iscell = np.load(
-            directory + "/plane" + str(plane_nr) + "/iscell.npy", allow_pickle=True
-        )
+        plane_path = os.path.join(directory, f"plane{plane_nr}")
+        spks_path = os.path.join(plane_path, "spks.npy")
+        iscell_path = os.path.join(plane_path, "iscell.npy")
+
+        if not os.path.exists(spks_path):
+            raise FileNotFoundError(f"Required file not found: {spks_path}")
+        if not os.path.exists(iscell_path):
+            raise FileNotFoundError(f"Required file not found: {iscell_path}")
+
+        spks_roi = np.load(spks_path, allow_pickle=True)
+        iscell = np.load(iscell_path, allow_pickle=True)
         bool_iscell = np.array([True if roi[0] == 1 else False for roi in iscell])
         spks_cell = spks_roi[bool_iscell]
 
