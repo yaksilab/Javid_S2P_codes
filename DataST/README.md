@@ -74,7 +74,7 @@ python -m s2p_to_yaksi_datastructure /path/to/suite2p/data
 ```
 
 
-### 2. Clone the repo <a id='clone'></a>
+### 3. Clone the repo <a id='clone'></a>
 clone the repository local in your computer
 
 >- <code> git clone https://github.com/yaksilab/Javid_S2P_codes/tree/main/DataST </code>
